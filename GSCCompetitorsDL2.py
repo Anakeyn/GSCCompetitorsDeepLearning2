@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov 28 10:29:18 2019
+Created on Mon Jan  13 10:29:18 2020
 
 @author: Pierre
 """
@@ -8,7 +8,7 @@ Created on Thu Nov 28 10:29:18 2019
 # GSCCompetitorsDL2 - réseau de neurones convolutif 
 # Auteur : Pierre Rouarch - Licence GPL 3
 # Classification des pages Web dans Google sur un mot clé en fonctions de caractérisitiques
-# Deep Learning  sur un univers de concurrence 1 
+# Deep Learning  sur un univers de concurrence 
 # Utilisation d'un réseau de neurones convolutif  simple pour une classification binaire
 # Données enrichiees via Scraping précédemment.
 #####################################################################################
@@ -25,15 +25,7 @@ import pandas as pd  #pour les Dataframes ou tableaux de données
 import os
 #scaler
 from sklearn.preprocessing import StandardScaler
-#Autres Scalers pas forcément utile mais peuvent être testés.
-#from sklearn.preprocessing import MinMaxScaler
-#fom sklearn.preprocessing import minmax_scale
-#from sklearn.preprocessing import MaxAbsScaler
-#from sklearn.preprocessing import StandardScaler
-#from sklearn.preprocessing import RobustScaler
-#from sklearn.preprocessing import Normalizer
-#from sklearn.preprocessing import QuantileTransformer
-#rom sklearn.preprocessing import PowerTransformer
+
 
 from sklearn.model_selection import train_test_split
 
@@ -89,7 +81,7 @@ scaler = StandardScaler() # Standard Scaler
 scaler.fit(X)
 X_Scaled = pd.DataFrame(scaler.transform(X.values), columns=X.columns, index=X.index)
 X_Scaled.info()
-#check some values
+#check  values
 plt.hist( X_Scaled['isHttps'])
 plt.hist( X_Scaled['lenTokensWebSite'])
 
@@ -134,19 +126,18 @@ X_test_values = X_test_values.reshape((X_test_values.shape[0],X_test_values.shap
 
 unitsNumber = 40  #(~2/3*( 61+1))
 
-#Reseau simple avec 2 couches cachées convolutives et  une couche cachée full connected 
+#Reseau simple avec 1 couche de convolution, 1 zero padding, 1 couche de convolution, 1 couche de pooling
+#une couche standard FC et une couche de sortie sigmoide car on cherche top10 ou non.
 model = models.Sequential()
 model.add(layers.Conv1D(filters=unitsNumber, kernel_size=3, activation='relu', input_shape=(61,1)))
+model.add(layers.ZeroPadding1D(padding=1))
 model.add(layers.Conv1D(filters=unitsNumber, kernel_size=3, activation='relu'))
-model.add(layers.Flatten())  # now output shape == (None, 3648)
+model.add(layers.MaxPooling1D(pool_size=2))
+model.add(layers.Flatten())  # now output shape == (None, 1160)
 model.add(layers.Dense(unitsNumber, activation='relu'))
-model.add(layers.Dense(1, activation='sigmoid'))
+model.add(layers.Dense(1, activation='sigmoid'))  #sortie binaire
 
-
-#model.add(layers.MaxPooling1D(3))
-#model.add(layers.ZeroPadding1D(padding=1))
-
-
+#my CNN
 model.summary()
 
 #Compile and train the model
@@ -196,11 +187,11 @@ plt.savefig("QPPS8-CNN-Accuracy.png", bbox_inches="tight", dpi=600)
 plt.show()  #!!!!   affiche et remet à zéro => sauvegarder avant 
 
 max(acc)  #meilleure  valeur de la précision sur le train set   0.8337889557265401
-acc.index(max(acc))  #23
+acc.index(max(acc))  #28
 
-max(val_acc)   #meilleure  valeur de la précision de validation sur le test set  0.7540177107639257
-#mieux que xgBoost non optimisé : 0.734 et que FNN  0.7448 mais juste en dessous de KNN 0.7553
-val_acc.index(max(val_acc))  #indice correspondant # 14
+max(val_acc)   #meilleure  valeur de la précision de validation sur le test set  0.7487700886122709
+#mieux que xgBoost non optimisé : 0.734 et que FNN  0.7448 mais en dessous de KNN 0.7553
+val_acc.index(max(val_acc))  #indice correspondant # 19
 
 
 
